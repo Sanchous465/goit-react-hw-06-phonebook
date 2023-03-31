@@ -1,29 +1,20 @@
 import { createSlice, nanoid } from '@reduxjs/toolkit';
-// import { persistReducer } from 'redux-persist';
-// import storage from 'redux-persist/lib/storage';
+import { persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
 
-// const contactsInitialState = [];
-const STORAGE = 'contact';
-const getSavedContacts = () => {
-  const savedContacts = localStorage.getItem(STORAGE);
-  if (savedContacts !== null) {
-    const parsedContacts = JSON.parse(savedContacts);
-    return parsedContacts;
-  }
-  return [];
-};
+const contactsInitialState = { items: [] };
+
 const constacsSlice = createSlice({
   name: 'contacts',
-  initialState: getSavedContacts,
+  initialState: contactsInitialState,
   reducers: {
     addContact: {
       reducer(state, action) {
-        state.some(contact => contact.name === action.payload.name)
+        state.items.some(contact => contact.name === action.payload.name)
           ? alert(
               `${action.payload.name}, Contact with such name is already exists!`
-            )
-          : state.push(action.payload);
-        localStorage.setItem(STORAGE, JSON.stringify(state));
+            ) :
+          state.items.push(action.payload);
       },
       prepare({ name, number }) {
         return {
@@ -36,8 +27,7 @@ const constacsSlice = createSlice({
       },
     },
     deleteContact(state, action) {
-      return state.filter(contact => contact.id !== action.payload);
-
+      state.items = state.items.filter(item => item.id !== action.payload);
       // const index = state.findIndex(contact => contact.id === action.payload);
       // state.splice(index, 1);
     },
@@ -46,4 +36,10 @@ const constacsSlice = createSlice({
 
 export const { addContact, deleteContact, filterContact } =
   constacsSlice.actions;
-export const contactsReducer = constacsSlice.reducer;
+const contactsReducer = constacsSlice.reducer;
+
+const persistConfig = {
+  key: 'contacts',
+  storage,
+}
+export const persistedReducer = persistReducer(persistConfig, contactsReducer)
